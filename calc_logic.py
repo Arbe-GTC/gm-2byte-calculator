@@ -545,14 +545,15 @@ def reverse_engineer_algorithm(seed_hex, target_key_hex, max_algorithms=256):
     target_key = int(target_key_hex, 16)
     
     print(f"🔍 Reverse Engineering: Seed 0x{seed:04X} → Key 0x{target_key:04X}")
-    print(f"Testing algorithms 1-{max_algorithms}...")
+    print(f"Testing algorithms 0-{max_algorithms - 1}...")
     
     # Walk the table sequentially and run the interpreter for every algorithm slot.
-    for algo in range(1, max_algorithms):
+    for algo in range(0, max_algorithms):
         try:
-            idx = algo * 13
-            if idx + 12 >= len(table_gmlan):
-                continue
+            if algo != 0:
+                idx = algo * 13
+                if idx + 12 >= len(table_gmlan):
+                    continue
                 
             # Stop as soon as the interpreter's output matches the requested key.
             seed_word = WORD(seed)
@@ -562,11 +563,16 @@ def reverse_engineer_algorithm(seed_hex, target_key_hex, max_algorithms=256):
                 print(f"✅ FOUND! Algorithm {algo} produces the correct key!")
                 
                 # Decode the instructions for the caller so they can inspect the flow.
-                opcode_sequence = extract_opcode_sequence(algo, table_gmlan)
-                print(f"📋 Opcode Sequence for Algorithm {algo}:")
-                for i, (opcode, hh, ll) in enumerate(opcode_sequence):
-                    op_name = get_opcode_name(opcode)
-                    print(f"   Step {i+1}: {op_name} (0x{opcode:02X}) with hh=0x{hh:02X}, ll=0x{ll:02X}")
+                if algo == 0:
+                    opcode_sequence = []
+                    print(f"📋 Opcode Sequence for Algorithm {algo}:")
+                    print("   Step 1: Ones-complement (Invert) (seed ^ 0xFFFF)")
+                else:
+                    opcode_sequence = extract_opcode_sequence(algo, table_gmlan)
+                    print(f"📋 Opcode Sequence for Algorithm {algo}:")
+                    for i, (opcode, hh, ll) in enumerate(opcode_sequence):
+                        op_name = get_opcode_name(opcode)
+                        print(f"   Step {i+1}: {op_name} (0x{opcode:02X}) with hh=0x{hh:02X}, ll=0x{ll:02X}")
                 
                 return algo, opcode_sequence
                 
