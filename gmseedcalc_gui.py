@@ -157,7 +157,7 @@ class SeedKeyCalculator(QWidget):
     def _run_brute_force(self, seed: int, table: Tuple[int, ...]) -> None:
         limit = len(table) // 13
         lines = []
-        for algo in range(1, limit):
+        for algo in range(0, limit):
             key = get_key(WORD(seed), algo, table)
             lines.append(f"Algo {algo:03d}: 0x{key.value:04X}")
 
